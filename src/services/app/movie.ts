@@ -69,7 +69,6 @@ export class MovieService {
                 .sort({ popularity: -1 })
                 .limit(defaultCount)
                 .select({
-                    _id: 0,
                     tmdbId: 1,
                     imdbId: 1,
                     posterPath: 1,
