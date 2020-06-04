@@ -1,4 +1,4 @@
-import { deleteUser, getSeenMovies, addSeenMovie } from '../controllers/user'
+import { deleteUser, getSeenMovies, addSeenMovie, deleteSeenMovie } from '../controllers/user'
 import { Router } from 'express'
 import { celebrate, Joi } from 'celebrate'
 import { authorized } from '../middlewares/authorized'
@@ -40,5 +40,21 @@ export default function(router: Router) {
             })
         }),
         addSeenMovie
+    )
+
+    route.delete(
+        '/seen/:id',
+        authorized(),
+        celebrate({
+            params: Joi.object({
+                id: Joi
+                    .custom(
+                        (value, helpers) => 
+                        isValidObjectId(value) ? value : helpers.error('any.invalid')
+                    )
+                    .required()
+            })
+        }),
+        deleteSeenMovie
     )
 }

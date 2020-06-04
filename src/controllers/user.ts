@@ -67,3 +67,20 @@ export async function addSeenMovie(req: Request, res: Response, next: NextFuncti
         return next(e)
     }
 }
+
+export async function deleteSeenMovie(req: Request, res: Response, next: NextFunction) {
+    const logger: winston.Logger = Container.get('AppLogger')
+    const userServiceInstance = Container.get(UserService)
+
+    try {
+        const seenId = Types.ObjectId(req.params['id'])
+        await userServiceInstance.deleteSeenMovie(seenId)
+
+        res.locals['status'] = 200
+
+        return next()
+    } catch (e) {
+        logger.error('🔥 error ', e)
+        return next(e)
+    }
+}
