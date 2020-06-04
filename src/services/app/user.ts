@@ -93,4 +93,30 @@ export class UserService {
             throw e
         }
     }
+
+    public async updateSeenMovie(seenId: Types.ObjectId, score: number) {
+        if (isNaN(score)) {
+            throw new Error('Bad score')
+        }
+
+        try {
+            return await this.SeenModel
+                .findByIdAndUpdate(seenId, {
+                    $set: {
+                        score
+                    }
+                }, {
+                    new: true
+                })
+                .select({
+                    __v: 0,
+                    createdAt: 0,
+                    updatedAt: 0,
+                    user: 0
+                })
+                .exec()
+        } catch (e) {
+            throw e
+        }
+    }
 }

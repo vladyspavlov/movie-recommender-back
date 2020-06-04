@@ -84,3 +84,30 @@ export async function deleteSeenMovie(req: Request, res: Response, next: NextFun
         return next(e)
     }
 }
+
+export async function updateSeenMovie(req: Request, res: Response, next: NextFunction) {
+    const logger: winston.Logger = Container.get('AppLogger')
+    const userServiceInstance = Container.get(UserService)
+
+    try {
+        const seenId = Types.ObjectId(req.params['id'])
+        const score = Number(req.body['score'])
+        const seen = await userServiceInstance.updateSeenMovie(seenId, score)
+
+        if (!seen) {
+            const err = new Error('Not found')
+            err['status'] = 404
+            return next(err)
+        }
+
+        res.locals['status'] = 201
+        res.locals['response'] = {
+            seen
+        }
+
+        return next()
+    } catch (e) {
+        logger.error('🔥 error ', e)
+        return next(e)
+    }
+}
