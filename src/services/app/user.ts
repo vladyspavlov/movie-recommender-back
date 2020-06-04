@@ -86,10 +86,9 @@ export class UserService {
 
     public async deleteSeenMovie(seenId: Types.ObjectId) {
         try {
-            const seen = await this.SeenModel
+            await this.SeenModel
                 .findByIdAndDelete(seenId)
                 .exec()
-            console.log(seen)
         } catch (e) {
             throw e
         }
