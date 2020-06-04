@@ -1,8 +1,9 @@
-import { prop, arrayProp, modelOptions, Ref, ReturnModelType } from '@typegoose/typegoose'
+import { prop, modelOptions, Ref, index } from '@typegoose/typegoose'
 import { User } from './User'
 import { Movie as TMDBMovie } from '../movie/Movie'
 
 @modelOptions({ schemaOptions: { timestamps: true } })
+@index({ user: 1, media: 1 }, { unique: true })
 export class Movie {
     @prop({ index: true, required: true, ref: User })
     user!: Ref<User>
