@@ -85,7 +85,7 @@ export class Person {
         tmdbId: Person['tmdbId']
     ) {
         //mongoLogger.debug(`Called findByTMDB(${tmdbId}) of ${this.modelName}`)
-        return this.findOne({ tmdbId }).exec()
+        return this.findOne({ tmdbId })
     }
 
     public static findByIMDB(
@@ -93,6 +93,6 @@ export class Person {
         imdbId: Person['imdbId']
     ) {
         //mongoLogger.debug(`Called findByIMDB(${imdbId}) of ${this.modelName}`)
-        return this.findOne({ imdbId }).exec()
+        return this.findOne({ imdbId })
     }
 }

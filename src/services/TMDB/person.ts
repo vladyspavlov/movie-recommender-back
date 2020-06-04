@@ -84,7 +84,7 @@ export default class PersonService extends TMDBService {
     public async getAndUpdatePerson(id: Person['tmdbId']) {
         try {
             this.logger.debug(`Finding Person ${id}`)
-            const candidate = await this.PersonModel.findByTMDB(id)
+            const candidate = await this.PersonModel.findByTMDB(id).exec()
     
             if (!candidate) {
                 this.logger.debug(`Person ${id} is not found in database`)

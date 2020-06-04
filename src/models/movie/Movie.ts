@@ -71,7 +71,7 @@ export class Movie {
     @prop({ trim: true })
     overview?: string | null
 
-    @prop()
+    @prop({ index: true })
     popularity?: number
 
     @prop({ trim: true })
@@ -146,7 +146,7 @@ export class Movie {
         tmdbId: Movie['tmdbId']
     ) {
         //mongoLogger.debug(`Called findByTMDB(${tmdbId}) of ${this.modelName}`)
-        return this.findOne({ tmdbId }).exec()
+        return this.findOne({ tmdbId })
     }
 
     public static findByIMDB(
@@ -154,20 +154,20 @@ export class Movie {
         imdbId: Movie['imdbId']
     ) {
         //mongoLogger.debug(`Called findByIMDB(${imdbId}) of ${this.modelName}`)
-        return this.findOne({ imdbId }).exec()
+        return this.findOne({ imdbId })
     }
 
     public static findLatest(
         this: ReturnModelType<typeof Movie>
     ) {
         //mongoLogger.debug(`Called findLatest() of ${this.modelName}`)
-        return this.findOne().sort({ _id: -1 }).exec()
+        return this.findOne().sort({ _id: -1 })
     }
 
     public static findLatestTMDB(
         this: ReturnModelType<typeof Movie>
     ) {
         //mongoLogger.debug(`Called findLatestTMDB() of ${this.modelName}`)
-        return this.findOne().sort({ tmdbId: -1 }).exec()
+        return this.findOne().sort({ tmdbId: -1 })
     }
 }

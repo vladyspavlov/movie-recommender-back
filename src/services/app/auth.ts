@@ -1,4 +1,4 @@
-/* import { OAuth2Client, GetTokenOptions, TokenPayload } from 'google-auth-library'
+import { OAuth2Client, GetTokenOptions, TokenPayload } from 'google-auth-library'
 import config from '../../config'
 import { User } from '../../models/app/User'
 import { Service, Inject } from 'typedi'
@@ -7,6 +7,7 @@ import * as winston from 'winston'
 import { EventDispatcher, EventDispatcherInterface } from '../../decorators/eventDispatcher'
 import * as jwt from 'jsonwebtoken'
 import events from '../../subscribers/events'
+import { UserPayload } from '../../interfaces/User'
 
 @Service()
 export class AuthService {
@@ -14,7 +15,7 @@ export class AuthService {
 
     constructor(
         @Inject('AppDB UserModel')
-        private userModel: ReturnModelType<typeof User>,
+        private UserModel: ReturnModelType<typeof User>,
         @Inject('AppLogger')
         private logger: winston.Logger,
         @EventDispatcher()
@@ -31,31 +32,7 @@ export class AuthService {
         )
     }
 
-    public async verifyGoogleOAuth(authCode: GetTokenOptions['code']) {
-        try {
-            const tokens = await this.googleAuthClient.getToken(authCode)
-            return this.googleAuthClient.verifyIdToken({
-                idToken: tokens.tokens.id_token,
-                audience: config.google.clientId
-            })
-        } catch (e) {
-            this.logger.error(e)
-            throw e
-        }
-    }
-
-    public generateGoogleOAuthUrl() {
-        return this.googleAuthClient.generateAuthUrl({
-            access_type: 'offline',
-            scope: [
-                'https://www.googleapis.com/auth/userinfo.email',
-                'https://www.googleapis.com/auth/userinfo.profile',
-                'openid'
-            ]
-        })
-    }
-
-    public signJWT(payload: object): Promise<string> {
+    public signJWT(payload: UserPayload): Promise<string> {
         return new Promise((res, rej) => {
             jwt.sign(
                 payload,
@@ -75,27 +52,45 @@ export class AuthService {
         })
     }
 
-    public verifyJWT(token: string): Promise<object> {
+    public verifyJWT(token: string): Promise<UserPayload> {
         return new Promise((res, rej) => {
             jwt.verify(token, config.jwtSecret, (err, decoded) => {
                 if (err) {
                     rej(err)
                 }
 
-                res(decoded)
+                res(decoded as UserPayload)
             })
         })
     }
 
-    public async signIn(payload: TokenPayload) {
-        if (payload.aud !== config.google.clientId ||
-            new Date(payload.exp * 1000) <= new Date()
-        ) {
-            throw new Error('Invalid token')
-        }
+    public generateGoogleOAuthUrl() {
+        return this.googleAuthClient.generateAuthUrl({
+            access_type: 'offline',
+            scope: [
+                'https://www.googleapis.com/auth/userinfo.email',
+                'https://www.googleapis.com/auth/userinfo.profile',
+                'openid'
+            ]
+        })
+    }
 
+    public async verifyGoogleOAuth(authCode: GetTokenOptions['code']) {
         try {
-            const userDocument = await this.userModel.findOrCreate({
+            const tokens = await this.googleAuthClient.getToken(authCode)
+            return this.googleAuthClient.verifyIdToken({
+                idToken: tokens.tokens.id_token,
+                audience: config.google.clientId
+            })
+        } catch (e) {
+            this.logger.error(e)
+            throw e
+        }
+    }
+
+    public async signInGoogle(payload: TokenPayload) {
+        try {
+            const userDocument = await this.UserModel.findOrCreate({
                 email: payload.email,
                 name: payload.name,
                 googleId: payload.sub
@@ -104,6 +99,8 @@ export class AuthService {
                 id: userDocument._id,
                 name: userDocument.name
             })
+            userDocument.token = token
+            await userDocument.save()
             const tokenParts = token.split('.')
 
             // Not working, check later
@@ -117,6 +114,35 @@ export class AuthService {
             this.logger.error(e)
             throw e
         }
-
     }
-} */
+
+    public async renewToken(token: string) {
+        try {
+            const payload = await this.verifyJWT(token)
+            const userDocument = await this.UserModel.findById(payload.id)
+            const newToken = await this.signJWT({
+                id: userDocument._id,
+                name: userDocument.name
+            })
+            userDocument.token = newToken
+            await userDocument.save()
+            
+            return newToken
+        } catch (e) {
+            this.logger.error(e)
+            throw e
+        }
+    }
+
+    public async logout(token: string) {
+        try {
+            const payload = await jwt.decode(token) as UserPayload
+            const userDocument = await this.UserModel.findById(payload.id)
+            userDocument.token = ''
+            await userDocument.save()
+        } catch (e) {
+            this.logger.error(e)
+            throw e
+        }
+    }
+}

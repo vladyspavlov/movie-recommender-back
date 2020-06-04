@@ -21,6 +21,6 @@ export class Genre {
         tmdbId: Genre['tmdbId']
     ) {
         //mongoLogger.debug(`Called findByTMDB(${tmdbId}) of ${this.modelName}`)
-        return this.findOne({ tmdbId }).exec()
+        return this.findOne({ tmdbId })
     }
 }

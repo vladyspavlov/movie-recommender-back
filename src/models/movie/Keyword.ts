@@ -21,6 +21,6 @@ export class Keyword {
         tmdbId: Keyword['tmdbId']
     ) {
         //mongoLogger.debug(`Called findByTMDB(${tmdbId}) of ${this.modelName}`)
-        return this.findOne({ tmdbId }).exec()
+        return this.findOne({ tmdbId })
     }
 }
