@@ -34,4 +34,30 @@ export class UserService {
             throw e
         }
     }
+
+    public async addSeenMovie(
+        userId: Types.ObjectId,
+        mediaId: Types.ObjectId,
+        score: number
+    ) {
+        if (isNaN(score)) {
+            throw new Error('Bad score')
+        }
+
+        try {
+            return await this.SeenModel.create({
+                user: userId,
+                media: mediaId,
+                score
+            })
+        } catch (e) {
+            if (e.code === 11000) {
+                const err = new Error('User already seen this movie')
+                err['status'] = 409
+                throw err
+            }
+
+            throw e
+        }
+    }
 }
