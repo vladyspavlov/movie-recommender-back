@@ -9,7 +9,7 @@ import './events'
 
 // Models schemas
 import { User } from '../models/app/User'
-import { Movie as UserMovie } from '../models/app/Movie'
+import { Seen } from '../models/app/Seen'
 
 import { Movie } from '../models/movie/Movie'
 import { Person } from '../models/movie/Person'
@@ -37,7 +37,7 @@ export default async function ({ expressApp }) {
 
     const models = [
         { name: `AppDB ${User.name}Model`, model: getModelForClass(User, { existingConnection: appDBConnection }) },
-        { name: `AppDB ${UserMovie.name}Model`, model: getModelForClass(UserMovie, { existingConnection: appDBConnection }) },
+        { name: `AppDB ${Seen.name}Model`, model: getModelForClass(Seen, { existingConnection: appDBConnection }) },
         // ====================
         { name: `MovieDB ${Movie.name}Model`, model: getModelForClass(Movie, { existingConnection: movieDBConnection }) },
         { name: `MovieDB ${Person.name}Model`, model: getModelForClass(Person, { existingConnection: movieDBConnection }) },

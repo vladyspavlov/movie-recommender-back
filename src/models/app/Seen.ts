@@ -4,7 +4,7 @@ import { Movie as TMDBMovie } from '../movie/Movie'
 
 @modelOptions({ schemaOptions: { timestamps: true } })
 @index({ user: 1, media: 1 }, { unique: true })
-export class Movie {
+export class Seen {
     @prop({ index: true, required: true, ref: User })
     user!: Ref<User>
 
@@ -13,14 +13,4 @@ export class Movie {
 
     @prop({ required: true })
     score!: number
-
-    /* public static async findOrCreate(
-        this: ReturnModelType<typeof User>,
-        instance: User
-    ) {
-        return await this.findOne({
-            email: instance.email,
-            googleId: instance.googleId
-        }).exec() || await this.create(instance)
-    } */
 }

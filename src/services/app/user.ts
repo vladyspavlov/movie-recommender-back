@@ -1,5 +1,5 @@
 import { User } from '../../models/app/User'
-import { Movie } from '../../models/app/Movie'
+import { Seen } from '../../models/app/Seen'
 import { Service, Inject } from 'typedi'
 import { ReturnModelType } from '@typegoose/typegoose'
 import * as winston from 'winston'
@@ -12,8 +12,8 @@ export class UserService {
     constructor(
         @Inject('AppDB UserModel')
         private UserModel: ReturnModelType<typeof User>,
-        @Inject('AppDB MovieModel')
-        private MovieModel: ReturnModelType<typeof Movie>,
+        @Inject('AppDB SeenModel')
+        private SeenModel: ReturnModelType<typeof Seen>,
         @Inject('AppLogger')
         private logger: winston.Logger,
         @EventDispatcher()
@@ -25,7 +25,7 @@ export class UserService {
             const userDocument = await this.UserModel
                 .findByIdAndDelete(id)
                 .exec()
-            await this.MovieModel
+            await this.SeenModel
                 .deleteMany({
                     user: userDocument._id
                 })
