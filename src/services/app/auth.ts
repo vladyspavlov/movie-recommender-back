@@ -64,6 +64,10 @@ export class AuthService {
         })
     }
 
+    public decodeJWT(token: string) {
+        return jwt.decode(token) as UserPayload
+    }
+
     public generateGoogleOAuthUrl() {
         return this.googleAuthClient.generateAuthUrl({
             access_type: 'offline',
