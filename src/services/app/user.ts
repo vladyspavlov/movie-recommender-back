@@ -6,6 +6,7 @@ import * as winston from 'winston'
 import { EventDispatcher, EventDispatcherInterface } from '../../decorators/eventDispatcher'
 import events from '../../subscribers/events'
 import { Types } from 'mongoose'
+import { omit } from 'lodash'
 
 @Service()
 export class UserService {
@@ -44,12 +45,16 @@ export class UserService {
             throw new Error('Bad score')
         }
 
+        const fieldsToOmit = ['__v', 'createdAt', 'updatedAt']
+
         try {
-            return await this.SeenModel.create({
+            const seen = await this.SeenModel.create({
                 user: userId,
                 media: mediaId,
                 score
             })
+
+            return omit(seen.toJSON(), fieldsToOmit)
         } catch (e) {
             if (e.code === 11000) {
                 const err = new Error('User already seen this movie')
