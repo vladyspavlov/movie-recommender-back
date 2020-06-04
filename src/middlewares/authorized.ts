@@ -48,6 +48,7 @@ export function authorized(generateToken = true) {
             const newSignature = newTokenParts[2]
             res.locals['token'] = newHeadersPayload
             res.locals['signature'] = newSignature
+            res.locals['payload'] = authServiceInstance.decodeJWT(newToken)
             return next()
         } catch (e) {
             return next(e)
