@@ -56,7 +56,7 @@ export async function addSeenMovie(req: Request, res: Response, next: NextFuncti
         const score = Number(req.body['score'])
         const seen = await userServiceInstance.addSeenMovie(userId, mediaId, score)
 
-        res.locals['status'] = 200
+        res.locals['status'] = 201
         res.locals['response'] = {
             seen
         }
