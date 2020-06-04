@@ -63,7 +63,7 @@ export class UserService {
             throw new Error('Bad score')
         }
 
-        const fieldsToOmit = ['__v', 'createdAt', 'updatedAt']
+        const fieldsToOmit = ['__v', 'createdAt', 'updatedAt', 'user']
 
         try {
             const seen = await this.SeenModel.create({
