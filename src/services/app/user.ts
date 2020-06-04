@@ -36,6 +36,24 @@ export class UserService {
         }
     }
 
+    public async getSeenMovies(userId: Types.ObjectId) {
+        try {
+            return await this.SeenModel
+                .find({
+                    user: userId
+                })
+                .select({
+                    user: 0,
+                    __v: 0,
+                    createdAt: 0,
+                    updatedAt: 0
+                })
+                .exec()
+        } catch (e) {
+            throw e
+        }
+    }
+
     public async addSeenMovie(
         userId: Types.ObjectId,
         mediaId: Types.ObjectId,

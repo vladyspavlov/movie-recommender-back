@@ -1,4 +1,4 @@
-import { deleteUser, addSeenMovie } from '../controllers/user'
+import { deleteUser, getSeenMovies, addSeenMovie } from '../controllers/user'
 import { Router } from 'express'
 import { celebrate, Joi } from 'celebrate'
 import { authorized } from '../middlewares/authorized'
@@ -13,6 +13,12 @@ export default function(router: Router) {
         '',
         authorized(false),
         deleteUser
+    )
+
+    route.get(
+        '/seen',
+        authorized(),
+        getSeenMovies
     )
 
     route.post(

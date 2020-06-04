@@ -24,6 +24,27 @@ export async function deleteUser(req: Request, res: Response, next: NextFunction
     }
 }
 
+export async function getSeenMovies(req: Request, res: Response, next: NextFunction) {
+    const logger: winston.Logger = Container.get('AppLogger')
+    const userServiceInstance = Container.get(UserService)
+    const payload = res.locals['payload'] as UserPayload
+
+    try {
+        const userId = payload.id
+        const seen = await userServiceInstance.getSeenMovies(userId)
+
+        res.locals['status'] = 200
+        res.locals['response'] = {
+            seen
+        }
+
+        return next()
+    } catch (e) {
+        logger.error('🔥 error ', e)
+        return next(e)
+    }
+}
+
 export async function addSeenMovie(req: Request, res: Response, next: NextFunction) {
     const logger: winston.Logger = Container.get('AppLogger')
     const userServiceInstance = Container.get(UserService)
