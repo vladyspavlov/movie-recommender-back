@@ -32,29 +32,6 @@ export default ({ app }: { app: Application }) => {
     // Load API routes
     app.use(config.api.prefix, routes())
 
-    // Middleware for appending new jwt token to each successful request
-    app.use((req, res) => {
-        if (res.locals['token']) {
-            return res
-                .cookie('signature', res.locals['signature'], {
-                    maxAge: 1000 * 60 * 60 * 24 * 30,
-                    httpOnly: true,
-                    secure: true,
-                    sameSite: 'lax',
-                })
-                .status(res.locals['status'])
-                .json({
-                    ...res.locals['response'],
-                    token: res.locals['token']
-                })
-        }
-
-        return res
-            .clearCookie('signature')
-            .status(res.locals['status'])
-            .json(res.locals['response'])
-    })
-
     // Middlewares for handling errors
     // Catch 404 and forward to error handler
     app.use((req, res, next) => {
