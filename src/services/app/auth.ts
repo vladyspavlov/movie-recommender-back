@@ -140,7 +140,7 @@ export class AuthService {
 
     public async logout(token: string) {
         try {
-            const payload = await jwt.decode(token) as UserPayload
+            const payload = jwt.decode(token) as UserPayload
             const userDocument = await this.UserModel.findById(payload.id)
             userDocument.token = ''
             await userDocument.save()
