@@ -43,6 +43,7 @@ export class UserService {
                     user: userId
                 })
                 .select({
+                    _id: 0,
                     user: 0,
                     __v: 0,
                     createdAt: 0,
