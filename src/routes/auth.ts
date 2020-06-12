@@ -1,4 +1,4 @@
-import { signInGoogle, verifyGoogle, logout } from '../controllers/auth'
+import { signInGoogle, verifyGoogle, logout, refresh } from '../controllers/auth'
 import { Router } from 'express'
 import { celebrate, Joi } from 'celebrate'
 import { authorized } from '../middlewares/authorized'
@@ -25,7 +25,13 @@ export default function(router: Router) {
 
     route.get(
         '/logout',
-        authorized(false),
+        authorized(),
         logout
+    )
+
+    route.get(
+        '/refresh',
+        authorized(),
+        refresh
     )
 }

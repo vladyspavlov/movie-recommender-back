@@ -2,7 +2,7 @@ import { Request, Response, NextFunction } from 'express'
 import { Container } from 'typedi'
 import { AuthService } from '../services/app/auth'
 
-export function authorized(generateToken = true) {
+export function authorized() {
     const authServiceInstance = Container.get(AuthService)
 
     return async function(req: Request, res: Response, next: NextFunction) {
@@ -33,22 +33,10 @@ export function authorized(generateToken = true) {
         const token = authorizationToken + '.' + signature
 
         try {
-            
-            if (!generateToken) {
-                const payload = await authServiceInstance.verifyJWT(token)
-                res.locals['token'] = token
-                res.locals['signature'] = signature
-                res.locals['payload'] = payload
-                return next()
-            }
-
-            const newToken = await authServiceInstance.renewToken(token)
-            const newTokenParts = newToken.split('.')
-            const newHeadersPayload = newTokenParts[0] + '.' + newTokenParts[1]
-            const newSignature = newTokenParts[2]
-            res.locals['token'] = newHeadersPayload
-            res.locals['signature'] = newSignature
-            res.locals['payload'] = authServiceInstance.decodeJWT(newToken)
+            const payload = await authServiceInstance.verifyJWT(token)
+            res.locals['token'] = token
+            res.locals['signature'] = signature
+            res.locals['payload'] = payload
             return next()
         } catch (e) {
             return next(e)

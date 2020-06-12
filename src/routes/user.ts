@@ -11,7 +11,7 @@ export default function(router: Router) {
     
     route.delete(
         '',
-        authorized(false),
+        authorized(),
         deleteUser
     )
 
