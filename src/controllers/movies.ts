@@ -31,7 +31,7 @@ export async function getPopular(req: Request, res: Response, next: NextFunction
         const movies = await movieServiceInstance.getPopular(req.query.count as string | null)
 
         return res
-            .json(200)
+            .status(200)
             .json({
                 movies
             })
