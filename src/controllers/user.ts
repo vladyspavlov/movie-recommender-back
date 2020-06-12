@@ -33,12 +33,11 @@ export async function getSeenMovies(req: Request, res: Response, next: NextFunct
         const userId = payload.id
         const seen = await userServiceInstance.getSeenMovies(userId)
 
-        res.locals['status'] = 200
-        res.locals['response'] = {
-            seen
-        }
-
-        return next()
+        return res
+            .status(200)
+            .json({
+                seen
+            })
     } catch (e) {
         logger.error('🔥 error ', e)
         return next(e)
@@ -56,12 +55,11 @@ export async function addSeenMovie(req: Request, res: Response, next: NextFuncti
         const score = Number(req.body['score'])
         const seen = await userServiceInstance.addSeenMovie(userId, mediaId, score)
 
-        res.locals['status'] = 201
-        res.locals['response'] = {
-            seen
-        }
-
-        return next()
+        return res
+            .status(201)
+            .json({
+                seen
+            })
     } catch (e) {
         logger.error('🔥 error ', e)
         return next(e)
@@ -76,9 +74,7 @@ export async function deleteSeenMovie(req: Request, res: Response, next: NextFun
         const seenId = Types.ObjectId(req.params['id'])
         await userServiceInstance.deleteSeenMovie(seenId)
 
-        res.locals['status'] = 200
-
-        return next()
+        return res.sendStatus(200)
     } catch (e) {
         logger.error('🔥 error ', e)
         return next(e)
@@ -100,12 +96,11 @@ export async function updateSeenMovie(req: Request, res: Response, next: NextFun
             return next(err)
         }
 
-        res.locals['status'] = 201
-        res.locals['response'] = {
-            seen
-        }
-
-        return next()
+        return res
+            .status(201)
+            .json({
+                seen
+            })
     } catch (e) {
         logger.error('🔥 error ', e)
         return next(e)

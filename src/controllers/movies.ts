@@ -11,11 +11,12 @@ export async function getOne(req: Request, res: Response, next: NextFunction) {
 
     try {
         const movie = await movieServiceInstance.find(id)
-        res.locals['status'] = 200
-        res.locals['response'] = {
-            movie
-        }
-        return next()
+
+        return res
+            .status(200)
+            .json({
+                movie
+            })
     } catch (e) {
         logger.error('🔥 error ', e)
         return next(e)
@@ -28,11 +29,12 @@ export async function getPopular(req: Request, res: Response, next: NextFunction
 
     try {
         const movies = await movieServiceInstance.getPopular(req.query.count as string | null)
-        res.locals['status'] = 200
-        res.locals['response'] = {
-            movies
-        }
-        return next()
+
+        return res
+            .json(200)
+            .json({
+                movies
+            })
     } catch (e) {
         logger.error('🔥 error ', e)
         return next(e)
