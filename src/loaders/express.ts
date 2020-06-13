@@ -23,7 +23,16 @@ export default ({ app }: { app: Application }) => {
     app.enable('trust proxy')
 
     // Enable CORS to all origins by default
-    app.use(cors())
+    app.use(cors({
+        origin: (origin, callback) => {
+            if (['http://localhost:8080'].indexOf(origin) !== -1) {
+                callback(null, true)
+            } else {
+                callback(new Error('Not allowed by CORS'))
+            }
+        },
+        credentials: true
+    }))
     // Middleware that transforms the raw string of req.body into json
     app.use(bodyParser.json())
     // Middleware for handling req.cookies
