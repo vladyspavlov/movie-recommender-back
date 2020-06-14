@@ -40,6 +40,44 @@ export class MovieService {
         }
     }
 
+    public async findCredits(id: string) {
+        try {
+            if (!isValidObjectId(id)) {
+                throw new Error('Invalid Id')
+            }
+
+            return await this.MovieModel
+                .aggregate([
+                    { $match: { media: id } },
+                    {
+                        $lookup: {
+                            from: 'people',
+                            localField: 'person',
+                            foreignField: '_id',
+                            as: 'info'
+                        }
+                    },
+                    { $unwind: { path: '$info' } },
+                    {
+                        $project: {
+                            _id: '$info._id',
+                            creditType: 1,
+                            department: 1,
+                            job: 1,
+                            cast: 1,
+                            name: '$info.name',
+                            profilePath: '$info.profilePath',
+                            tmdbId: '$info.tmdbId',
+                            imdbId: '$info.imdbId'
+                        }
+                    }
+                ])
+                .exec()
+        } catch (e) {
+            throw e
+        }
+    }
+
     public async search(text: string) {
         const regex = new RegExp('.*' + text + '.*', 'i')
 
