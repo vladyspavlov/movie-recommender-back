@@ -18,14 +18,14 @@ export class MovieService {
         private logger: winston.Logger,
         @EventDispatcher()
         private eventDispatcher: EventDispatcherInterface,
-    ) {}
+    ) { }
 
     public async find(id: string) {
         try {
             let condition = {}
 
             if (isValidObjectId(id)) {
-                condition = { _id: id }
+                condition = { _id: Types.ObjectId(id) }
             } else if (!isNaN(Number(id))) {
                 condition = { tmdbId: Number(id) }
             } else if (id.startsWith('tt')) {
@@ -35,8 +35,40 @@ export class MovieService {
             }
 
             return await this.MovieModel
-                .findOne({ ...condition })
-                .select({ __v: 0, createdAt: 0, updatedAt: 0 })
+                .aggregate([
+                    { $match: condition },
+                    {
+                        $lookup: {
+                            from: 'keywords',
+                            localField: 'keywords',
+                            foreignField: '_id',
+                            as: 'keywords'
+                        }
+                    },
+                    { $addFields: { keywords_temp: '$keywords.name' } },
+                    { $project: { keywords: 0 } },
+                    { $addFields: { keywords: '$keywords_temp' } },
+                    { $project: { keywords_temp: 0 } },
+                    {
+                        $lookup: {
+                            from: 'genres',
+                            localField: 'genres',
+                            foreignField: '_id',
+                            as: 'genres'
+                        }
+                    },
+                    { $addFields: { genres_temp: '$genres.name' } },
+                    { $project: { genres: 0 } },
+                    { $addFields: { genres: '$genres_temp' } },
+                    { $project: { genres_temp: 0 } },
+                    {
+                        $project: {
+                            __v: 0,
+                            createdAt: 0,
+                            updatedAt: 0
+                        }
+                    }
+                ])
                 .exec()
         } catch (e) {
             throw e
@@ -86,21 +118,21 @@ export class MovieService {
 
         try {
             return await this.MovieModel
-            .find({
-                $and: [
-                    {
-                        $or: [
-                            { title: regex },
-                            { 'translations.data.title': regex }
-                        ]
-                    },
-                    { adult: false }
-                ]
-            })
-            .sort({ popularity: -1 })
-            .limit(100)
-            .select({ __v: 0, createdAt: 0, updatedAt: 0 })
-            .exec()
+                .find({
+                    $and: [
+                        {
+                            $or: [
+                                { title: regex },
+                                { 'translations.data.title': regex }
+                            ]
+                        },
+                        { adult: false }
+                    ]
+                })
+                .sort({ popularity: -1 })
+                .limit(100)
+                .select({ __v: 0, createdAt: 0, updatedAt: 0 })
+                .exec()
         } catch (e) {
             throw e
         }
