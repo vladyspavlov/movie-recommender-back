@@ -47,7 +47,7 @@ export class MovieService {
     }
 
     public async search(text: string) {
-        const regex = new RegExp(text)
+        const regex = new RegExp('.*' + text + '.*', 'i')
 
         try {
             return await this.MovieModel
