@@ -1,6 +1,7 @@
 import { Movie } from '../../models/movie/Movie'
 import { Service, Inject } from 'typedi'
 import { ReturnModelType } from '@typegoose/typegoose'
+import { isValidObjectId } from 'mongoose'
 import * as winston from 'winston'
 import { EventDispatcher, EventDispatcherInterface } from '../../decorators/eventDispatcher'
 import events from '../../subscribers/events'
@@ -17,30 +18,23 @@ export class MovieService {
     ) {}
 
     public async find(id: string) {
-        if (id.startsWith('tt')) {
-            try {
-                const movie = await this.MovieModel
-                    .findByIMDB(id)
-                    .select({ __v: 0, createdAt: 0, updatedAt: 0 })
-                    .exec()
-                return movie
-            } catch (e) {
-                throw e
-            }
-        }
-
         try {
-            const tmdbId = Number(id)
+            let condition = {}
 
-            if (isNaN(tmdbId)) {
-                throw new Error('Invalid id')
+            if (isValidObjectId(id)) {
+                condition = { _id: id }
+            } else if (!isNaN(Number(id))) {
+                condition = { tmdbId: Number(id) }
+            } else if (id.startsWith('tt')) {
+                condition = { imdbId: id }
+            } else {
+                throw new Error('Invalid Id')
             }
 
-            const movie = await this.MovieModel
-                .findByTMDB(tmdbId)
+            return await this.MovieModel
+                .findOne({ ...condition })
                 .select({ __v: 0, createdAt: 0, updatedAt: 0 })
                 .exec()
-            return movie
         } catch (e) {
             throw e
         }
