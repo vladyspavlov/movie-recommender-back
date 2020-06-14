@@ -46,6 +46,25 @@ export class MovieService {
         }
     }
 
+    public async search(text: string) {
+        const regex = new RegExp(text)
+
+        try {
+            return await this.MovieModel
+            .find({
+                $or: [
+                    { title: regex },
+                    { 'translations.data.title': regex }
+                ]
+            })
+            .limit(100)
+            .select({ __v: 0, createdAt: 0, updatedAt: 0 })
+            .exec()
+        } catch (e) {
+            throw e
+        }
+    }
+
     public async getPopular(count?: string) {
         let defaultCount = 250
 
