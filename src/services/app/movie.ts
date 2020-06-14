@@ -52,9 +52,14 @@ export class MovieService {
         try {
             return await this.MovieModel
             .find({
-                $or: [
-                    { title: regex },
-                    { 'translations.data.title': regex }
+                $and: [
+                    {
+                        $or: [
+                            { title: regex },
+                            { 'translations.data.title': regex }
+                        ]
+                    },
+                    { adult: false }
                 ]
             })
             .sort({ popularity: -1 })
