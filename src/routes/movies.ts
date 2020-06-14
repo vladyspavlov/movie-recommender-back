@@ -1,4 +1,4 @@
-import { getOne, search, getPopular } from '../controllers/movies'
+import { getOne, search, getPopular, getOneCredits } from '../controllers/movies'
 import { Router } from 'express'
 import { celebrate, Joi } from 'celebrate'
 import { authorized } from '../middlewares/authorized'
@@ -17,6 +17,17 @@ export default function(router: Router) {
             })
         }),
         getOne
+    )
+
+    route.get(
+        '/movie/:id/credits',
+        authorized(),
+        celebrate({
+            params: Joi.object({
+                id: Joi.string().required()
+            })
+        }),
+        getOneCredits
     )
 
     route.get(
