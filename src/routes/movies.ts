@@ -1,4 +1,4 @@
-import { getOne, getPopular } from '../controllers/movies'
+import { getOne, search, getPopular } from '../controllers/movies'
 import { Router } from 'express'
 import { celebrate, Joi } from 'celebrate'
 import { authorized } from '../middlewares/authorized'
@@ -17,6 +17,17 @@ export default function(router: Router) {
             })
         }),
         getOne
+    )
+
+    route.get(
+        '/search',
+        authorized(),
+        celebrate({
+            query: Joi.object({
+                s: Joi.string().min(1).max(150).required()
+            })
+        }),
+        search
     )
 
     route.get(
