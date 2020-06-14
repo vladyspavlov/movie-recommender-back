@@ -57,6 +57,7 @@ export class MovieService {
                     { 'translations.data.title': regex }
                 ]
             })
+            .sort({ popularity: -1 })
             .limit(100)
             .select({ __v: 0, createdAt: 0, updatedAt: 0 })
             .exec()
