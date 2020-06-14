@@ -50,6 +50,19 @@ export class UserService {
                     updatedAt: 0
                 })
                 .exec()
+            
+            return await Promise.all(seen.map(async (doc) => {
+                const movie = await this.MovieModel
+                    .findById(doc.media)
+                    .select({
+                        _id: 0,
+                        title: 1,
+                        posterPath: 1
+                    })
+                    .exec()
+                
+                return { ...doc.toJSON(), ...movie.toJSON() }
+            }))
         } catch (e) {
             throw e
         }
