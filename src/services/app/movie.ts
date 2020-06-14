@@ -1,7 +1,8 @@
 import { Movie } from '../../models/movie/Movie'
+import { Credit } from '../../models/movie/Credit'
 import { Service, Inject } from 'typedi'
 import { ReturnModelType } from '@typegoose/typegoose'
-import { isValidObjectId } from 'mongoose'
+import { isValidObjectId, Types } from 'mongoose'
 import * as winston from 'winston'
 import { EventDispatcher, EventDispatcherInterface } from '../../decorators/eventDispatcher'
 import events from '../../subscribers/events'
@@ -11,6 +12,8 @@ export class MovieService {
     constructor(
         @Inject('MovieDB MovieModel')
         private MovieModel: ReturnModelType<typeof Movie>,
+        @Inject('MovieDB CreditModel')
+        private CreditModel: ReturnModelType<typeof Credit>,
         @Inject('AppLogger')
         private logger: winston.Logger,
         @EventDispatcher()
@@ -46,9 +49,9 @@ export class MovieService {
                 throw new Error('Invalid Id')
             }
 
-            return await this.MovieModel
+            return await this.CreditModel
                 .aggregate([
-                    { $match: { media: id } },
+                    { $match: { media: Types.ObjectId(id) } },
                     {
                         $lookup: {
                             from: 'people',
