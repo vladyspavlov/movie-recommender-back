@@ -16,10 +16,9 @@ export function signInGoogle(req: Request, res: Response) {
 export async function verifyGoogle(req: Request, res: Response, next: NextFunction) {
     const logger: winston.Logger = Container.get('AppLogger')
     const authServiceInstance = Container.get(AuthService)
-    const code = decodeURIComponent(req.body.code as string)
 
     try {
-        const loginTicket = await authServiceInstance.verifyGoogleOAuth(code)
+        const loginTicket = await authServiceInstance.verifyGoogleOAuth(req.body.token as string)
         const {
             tokenHeadersPayload,
             tokenSignature
