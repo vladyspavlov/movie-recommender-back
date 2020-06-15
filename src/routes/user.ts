@@ -34,7 +34,7 @@ export default function(router: Router) {
                     .required(),
                 score: Joi
                     .number()
-                    .min(1)
+                    .min(0.5)
                     .max(5)
                     .required()
             })
@@ -73,7 +73,7 @@ export default function(router: Router) {
             body: Joi.object({
                 score: Joi
                     .number()
-                    .min(1)
+                    .min(0.5)
                     .max(5)
                     .required()
             })
