@@ -1,4 +1,4 @@
-import { OAuth2Client, GetTokenOptions, TokenPayload } from 'google-auth-library'
+import { OAuth2Client, VerifyIdTokenOptions, TokenPayload } from 'google-auth-library'
 import config from '../../config'
 import { User } from '../../models/app/User'
 import { Service, Inject } from 'typedi'
@@ -79,11 +79,10 @@ export class AuthService {
         })
     }
 
-    public async verifyGoogleOAuth(authCode: GetTokenOptions['code']) {
+    public async verifyGoogleOAuth(idToken: VerifyIdTokenOptions['idToken']) {
         try {
-            const tokens = await this.googleAuthClient.getToken(authCode)
             return this.googleAuthClient.verifyIdToken({
-                idToken: tokens.tokens.id_token,
+                idToken,
                 audience: config.google.clientId
             })
         } catch (e) {
