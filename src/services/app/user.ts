@@ -5,8 +5,9 @@ import { ReturnModelType } from '@typegoose/typegoose'
 import * as winston from 'winston'
 import { EventDispatcher, EventDispatcherInterface } from '../../decorators/eventDispatcher'
 import events from '../../subscribers/events'
-import { Types } from 'mongoose'
+import { Types, Document } from 'mongoose'
 import { omit } from 'lodash'
+import { Movie } from '../../models/movie/Movie'
 
 @Service()
 export class UserService {
@@ -15,6 +16,8 @@ export class UserService {
         private UserModel: ReturnModelType<typeof User>,
         @Inject('AppDB SeenModel')
         private SeenModel: ReturnModelType<typeof Seen>,
+        @Inject('MovieDB MovieModel')
+        private MovieModel: ReturnModelType<typeof Movie>,
         @Inject('AppLogger')
         private logger: winston.Logger,
         @EventDispatcher()
@@ -38,12 +41,11 @@ export class UserService {
 
     public async getSeenMovies(userId: Types.ObjectId) {
         try {
-            return await this.SeenModel
+            const seen = await this.SeenModel
                 .find({
                     user: userId
                 })
                 .select({
-                    _id: 0,
                     user: 0,
                     __v: 0,
                     createdAt: 0,
@@ -86,7 +88,16 @@ export class UserService {
                 score
             })
 
-            return omit(seen.toJSON(), fieldsToOmit)
+            const movie = await this.MovieModel
+                .findById(mediaId)
+                .select({
+                    _id: 0,
+                    title: 1,
+                    posterPath: 1
+                })
+                .exec()
+
+            return Object.assign(omit(seen.toJSON(), fieldsToOmit), movie.toJSON())
         } catch (e) {
             if (e.code === 11000) {
                 const err = new Error('User already seen this movie')
