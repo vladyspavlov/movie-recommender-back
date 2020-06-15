@@ -15,7 +15,7 @@ export async function getOne(req: Request, res: Response, next: NextFunction) {
         return res
             .status(200)
             .json({
-                movie
+                movie: movie[0]
             })
     } catch (e) {
         logger.error('🔥 error ', e)
