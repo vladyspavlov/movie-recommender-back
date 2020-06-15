@@ -17,7 +17,7 @@ export default function(router: Router) {
         '/verifyGoogle',
         celebrate({
             body: Joi.object({
-                code: Joi.string().required()
+                token: Joi.string().required()
             })
         }),
         verifyGoogle
