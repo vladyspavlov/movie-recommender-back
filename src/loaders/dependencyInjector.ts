@@ -3,6 +3,7 @@ import { Connection } from 'mongoose'
 import { logger } from './logger'
 import agendaFactory from './agenda'
 import * as winston from 'winston'
+import tfFactory from './tensorflow'
 
 /**
  * @todo Add ReturnModelType for model property
@@ -17,11 +18,15 @@ type params = {
     loggers: {
         name: string,
         logger: winston.Logger
+    }[],
+    tfModels: {
+        name: string,
+        model: object
     }[]
 }
 
 export default (
-    { mongoConnection, models, loggers }: params
+    { mongoConnection, models, loggers, tfModels }: params
 ) => {
     try {
         models.forEach((m) => {
@@ -35,6 +40,12 @@ export default (
         })
 
         logger.info('✌️ Loggers injected into container')
+
+        tfModels.forEach((m) => {
+            Container.set(m.name, m.model)
+        })
+
+        logger.info('✌️ Tensorflow models injected into container')
 
         const agendaInstance = agendaFactory({ mongoConnection })
 
