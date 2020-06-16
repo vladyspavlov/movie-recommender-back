@@ -80,7 +80,7 @@ export class Movie {
     @prop({ ref: Company })
     productionCompanies?: Ref<Company>[]
 
-    @prop({ items: String, innerOptions: { minlength: 0, maxlength: 2, trim: true } })
+    @prop({ type: String, innerOptions: { minlength: 0, maxlength: 2, trim: true } })
     productionCountries?: string[] // iso_3166_1
 
     @prop({ trim: true })
@@ -92,7 +92,7 @@ export class Movie {
     @prop()
     runtime?: number | null
 
-    @prop({ items: String, innerOptions: { minlength: 0, maxlength: 2, trim: true } })
+    @prop({ type: String, innerOptions: { minlength: 0, maxlength: 2, trim: true } })
     spokenLangs?: string[]  // iso_639_1
 
     @prop({ validate: {
@@ -124,13 +124,13 @@ export class Movie {
     @prop()
     voteCount?: number
 
-    @prop({ items: MovieTitle, index: true, _id: false })
+    @prop({ type: MovieTitle, index: true, _id: false })
     titles?: MovieTitle[]
 
     @prop({ ref: Keyword, index: true })
     keywords?: Ref<Keyword>[]
 
-    @prop({ items: MovieTranslation, _id: false })
+    @prop({ type: MovieTranslation, _id: false })
     translations?: MovieTranslation[]
 
     public static async findOrCreate(

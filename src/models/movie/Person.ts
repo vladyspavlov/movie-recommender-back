@@ -39,7 +39,7 @@ export class Person {
     }, */ minlength: 0, maxlength: 9, trim: true })
     imdbId?: string | null
 
-    @prop({ items: String, index: true, trim: true })
+    @prop({ type: String, index: true, trim: true })
     knownAs?: string[]
 
     @prop({ trim: true })
@@ -69,7 +69,7 @@ export class Person {
     @prop()
     popularity?: number
 
-    @prop({ items: PersonTranslation, _id: false })
+    @prop({ type: PersonTranslation, _id: false })
     translations?: PersonTranslation[]
 
     public static async findOrCreate(
