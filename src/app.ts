@@ -27,18 +27,6 @@ async function start() {
         ################################################
         `)
     })
-
-    /**
-     * @todo jobs
-     * @todo fix bugs with tmdb
-     * @todo create validators for api
-     * @todo create services for returning movie data
-     */
-    //const ps = Container.get(TMDB.PersonService)
-    //const results = await ps.getChangeList({ page: 1 })
-    //const toUpdate = await ps.getNotFilled()
-    //console.log(await ps.get(2648948))
-    //await ps.batchUpdate(toUpdate)
 }
 
 start()
