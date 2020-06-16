@@ -1,4 +1,4 @@
-import { prop, Ref, arrayProp, modelOptions, ReturnModelType } from '@typegoose/typegoose'
+import { prop, Ref, modelOptions, ReturnModelType } from '@typegoose/typegoose'
 import { Genre } from './Genre'
 import { Company } from './Company'
 import { Keyword } from './Keyword'
@@ -50,7 +50,7 @@ export class Movie {
     @prop()
     budget?: number
 
-    @arrayProp({ ref: Genre })
+    @prop({ ref: Genre })
     genres?: Ref<Genre>[]
 
     @prop({ trim: true })
@@ -77,10 +77,10 @@ export class Movie {
     @prop({ trim: true })
     posterPath?: string | null
 
-    @arrayProp({ ref: Company })
+    @prop({ ref: Company })
     productionCompanies?: Ref<Company>[]
 
-    @arrayProp({ items: String, innerOptions: { minlength: 0, maxlength: 2, trim: true } })
+    @prop({ items: String, innerOptions: { minlength: 0, maxlength: 2, trim: true } })
     productionCountries?: string[] // iso_3166_1
 
     @prop({ trim: true })
@@ -92,7 +92,7 @@ export class Movie {
     @prop()
     runtime?: number | null
 
-    @arrayProp({ items: String, innerOptions: { minlength: 0, maxlength: 2, trim: true } })
+    @prop({ items: String, innerOptions: { minlength: 0, maxlength: 2, trim: true } })
     spokenLangs?: string[]  // iso_639_1
 
     @prop({ validate: {
@@ -124,13 +124,13 @@ export class Movie {
     @prop()
     voteCount?: number
 
-    @arrayProp({ items: MovieTitle, index: true, _id: false })
+    @prop({ items: MovieTitle, index: true, _id: false })
     titles?: MovieTitle[]
 
-    @arrayProp({ ref: Keyword, index: true })
+    @prop({ ref: Keyword, index: true })
     keywords?: Ref<Keyword>[]
 
-    @arrayProp({ items: MovieTranslation, _id: false })
+    @prop({ items: MovieTranslation, _id: false })
     translations?: MovieTranslation[]
 
     public static async findOrCreate(

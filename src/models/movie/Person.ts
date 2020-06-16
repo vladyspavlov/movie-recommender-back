@@ -1,4 +1,4 @@
-import { prop, arrayProp, modelOptions, ReturnModelType } from '@typegoose/typegoose'
+import { prop, modelOptions, ReturnModelType } from '@typegoose/typegoose'
 
 export class PersonTranslationData {
     @prop({ trim: true })
@@ -39,7 +39,7 @@ export class Person {
     }, */ minlength: 0, maxlength: 9, trim: true })
     imdbId?: string | null
 
-    @arrayProp({ items: String, index: true, trim: true })
+    @prop({ items: String, index: true, trim: true })
     knownAs?: string[]
 
     @prop({ trim: true })
@@ -69,7 +69,7 @@ export class Person {
     @prop()
     popularity?: number
 
-    @arrayProp({ items: PersonTranslation, _id: false })
+    @prop({ items: PersonTranslation, _id: false })
     translations?: PersonTranslation[]
 
     public static async findOrCreate(
