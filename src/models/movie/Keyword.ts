@@ -10,6 +10,8 @@ export class Keyword {
 
     public static async findOrCreate(
         this: ReturnModelType<typeof Keyword>,
+        // https://github.com/DefinitelyTyped/DefinitelyTyped/commit/88a54a939455efa0937b55ed507631415a574c44
+        // Need to be fixed
         instance: Keyword
     ) {
         //mongoLogger.debug(`Called findOrCreate(${instance}) of ${this.modelName}`)

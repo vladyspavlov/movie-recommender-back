@@ -29,6 +29,8 @@ export class Company {
 
     public static async findOrCreate(
         this: ReturnModelType<typeof Company>,
+        // https://github.com/DefinitelyTyped/DefinitelyTyped/commit/88a54a939455efa0937b55ed507631415a574c44
+        // Need to be fixed
         instance: Company
     ) {
         //mongoLogger.debug(`Called findOrCreate(${instance}) of ${this.modelName}`)
