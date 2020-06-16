@@ -31,6 +31,7 @@
   },
   "dependencies": {
     "@hapi/joi": "^17.1.1",
+    "@tensorflow/tfjs-node": "^2.0.1",
     "@typegoose/typegoose": "^7.1.3",
     "@types/express-jwt": "0.0.42",
     "@types/jsonwebtoken": "^8.5.0",
