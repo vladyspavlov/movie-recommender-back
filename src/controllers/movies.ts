@@ -43,6 +43,26 @@ export async function getOneCredits(req: Request, res: Response, next: NextFunct
     }
 }
 
+export async function getOneRelated(req: Request, res: Response, next: NextFunction) {
+    const logger: winston.Logger = Container.get('AppLogger')
+    const movieServiceInstance = Container.get(MovieService)
+
+    const id = req.params.id as string
+
+    try {
+        const related = await movieServiceInstance.findRelated(id, 10)
+
+        return res
+            .status(200)
+            .json({
+                related
+            })
+    } catch (e) {
+        logger.error('🔥 error ', e)
+        return next(e)
+    }
+}
+
 export async function search(req: Request, res: Response, next: NextFunction) {
     const logger: winston.Logger = Container.get('AppLogger')
     const movieServiceInstance = Container.get(MovieService)
