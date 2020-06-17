@@ -126,7 +126,14 @@ export class MovieService {
             
             const related = await this.MovieModel
                 .aggregate([
-                    { $match: { keywords: { $in: movie.keywords } } },
+                    { $match: 
+                        {
+                            $and: [
+                                { keywords: { $in: movie.keywords } },
+                                { _id: { $ne: Types.ObjectId(id) } }
+                            ]
+                        }
+                    },
                     { $sort: { popularity: -1 } },
                     { $limit: limit },
                     { $project: {
