@@ -2,7 +2,6 @@ import { getModelForClass } from '@typegoose/typegoose'
 import * as mongooseLoader from './mongoose'
 import dependencyInjectorLoader from './dependencyInjector'
 import createLogger, { logger } from './logger'
-import tfLoader from './tensorflow'
 import jobsLoader from './jobs'
 import expressLoader from './express'
 import './events'
@@ -48,15 +47,10 @@ export default async function ({ expressApp }) {
         { name: `MovieDB ${Genre.name}Model`, model: getModelForClass(Genre, { existingConnection: movieDBConnection }) },
     ]
 
-    const tfModels = [
-        { name: 'TF RecModel', model: tfLoader({ modelUrl: 'file:///home/vlad/tfjs_model/model.json' }) },
-    ]
-
     const { agenda } = dependencyInjectorLoader({
         mongoConnection: appDBConnection,
         models,
-        loggers,
-        tfModels,
+        loggers
     })
 
     logger.info('✌️ Dependency Injector loaded')
