@@ -113,6 +113,36 @@ export class MovieService {
         }
     }
 
+    public async findRelated(id: string, limit: number) {
+        try {
+            if (!isValidObjectId(id)) {
+                throw new Error('Invalid Id')
+            }
+
+            const movie = await this.MovieModel
+                .findOne({ _id: id })
+                .select({ _id: 0, keywords: 1 })
+                .exec()
+            
+            const related = await this.MovieModel
+                .aggregate([
+                    { $match: { keywords: { $in: movie.keywords } } },
+                    { $sort: { popularity: -1 } },
+                    { $limit: limit },
+                    { $project: {
+                        _id: 1,
+                        title: 1,
+                        posterPath: 1
+                    } }
+                ])
+                .exec()
+
+            return related
+        } catch (e) {
+            throw e
+        }
+    }
+
     public async search(text: string) {
         const regex = new RegExp('.*' + text + '.*', 'i')
 
