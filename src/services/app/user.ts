@@ -1,12 +1,12 @@
 import { User } from '../../models/app/User'
 import { Seen } from '../../models/app/Seen'
 import { Service, Inject } from 'typedi'
-import { ReturnModelType } from '@typegoose/typegoose'
+import { ReturnModelType, DocumentType } from '@typegoose/typegoose'
 import * as winston from 'winston'
 import { EventDispatcher, EventDispatcherInterface } from '../../decorators/eventDispatcher'
 import events from '../../subscribers/events'
-import { Types, Document } from 'mongoose'
-import { omit } from 'lodash'
+import { Types, isValidObjectId } from 'mongoose'
+import { omit, countBy, flatten } from 'lodash'
 import { Movie } from '../../models/movie/Movie'
 
 @Service()
@@ -140,6 +140,121 @@ export class UserService {
                     user: 0
                 })
                 .exec()
+        } catch (e) {
+            throw e
+        }
+    }
+
+    public async getRecommendations(
+        userId: string,
+        limit: number
+    ) {
+        if (!isValidObjectId(userId)) {
+            throw new Error('Invalid Id')
+        }
+
+        try {
+            // Get rated movies
+            const seenMovies: Pick<Seen, 'media'>[] = await this.SeenModel
+                .aggregate([
+                    { $match: {
+                        user: Types.ObjectId(userId),
+                        score: { $gte: 4 }
+                    } },
+                    { $project: {
+                        _id: 0,
+                        media: 1
+                    } }
+                ])
+                .exec()
+
+            if (seenMovies.length === 0) {
+                return []
+            }
+
+            // Get rated movies id
+            const seenMoviesIds = seenMovies.map(m => m.media)
+            // Get movie keywords by movie id
+            const moviesKeywords: Pick<Movie, 'keywords'>[] = await this.MovieModel
+                .aggregate([
+                    { $match: {
+                        _id: {
+                            $in: seenMoviesIds
+                        }
+                    } },
+                    { $project: {
+                        _id: 0,
+                        keywords: 1
+                    } }
+                ])
+                .exec()
+
+            // combine keywords of all movies to one array
+            const keywordsArr = flatten(moviesKeywords.map(m => m.keywords))
+            // count keyword frequency
+            const keywordsFrequency = countBy(keywordsArr)
+            // convert object to array of arrays i.e. [ [ keyword, count ], ... ]
+            const keywordsFrequencyEntries = Object.entries(keywordsFrequency)
+            // Calculate density for each keyword
+            const keywordsDensityArr = keywordsFrequencyEntries.map(e => {
+                const density = e[1] / keywordsArr.length
+                return { [e[0]]: density }
+            })
+            // Convert array of arrays back to object
+            const keywordsDensity = Object.assign({}, ...keywordsDensityArr)
+            // Find all movies (except seen) that contains at least one of keywords
+            const matchedMovies: DocumentType<Movie>[] = await this.MovieModel
+                .aggregate([
+                    { $match: {
+                        $and: [
+                            { keywords: { $in: keywordsArr } },
+                            { _id: { $nin: seenMoviesIds } }
+                        ]
+                    }},
+                    { $project: {
+                        _id: 1,
+                        keywords: 1,
+                        title: 1,
+                        posterPath: 1,
+                        popularity: 1
+                    } }
+                ])
+                .exec()
+
+            // Movies in order of best similarity due to density and popularity
+            const similarMovies = matchedMovies
+                // find density for each movie
+                .map(m => {
+                    const movieDensity = m.keywords
+                        .map(k => keywordsDensity[(<string>k)]) // declare k as string
+                        .filter(k => k) // filter undefined
+                        .reduce((acc, cur) => (acc + cur)) // sum all densities of all keywords
+                    
+                    return [
+                        m._id,
+                        movieDensity,
+                        m.popularity,
+                        m.title,
+                        m.posterPath
+                    ] as [
+                        string,
+                        number,
+                        number,
+                        string,
+                        string
+                    ]
+                })
+                // sort by density and popularity
+                .sort((a, b) => (b[1] - a[1]) || (b[2] - a[2]))
+                // Return array of ObjectId(movieId)
+                .map(m => ({
+                    _id: Types.ObjectId(m[0]),
+                    title: m[3],
+                    posterPath: m[4]
+                }))
+                .slice(0, limit)
+
+            return similarMovies
         } catch (e) {
             throw e
         }
