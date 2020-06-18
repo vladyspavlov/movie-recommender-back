@@ -1,4 +1,4 @@
-import { deleteUser, getSeenMovies, addSeenMovie, deleteSeenMovie, updateSeenMovie } from '../controllers/user'
+import { deleteUser, getSeenMovies, addSeenMovie, deleteSeenMovie, updateSeenMovie, getRecommendations } from '../controllers/user'
 import { Router } from 'express'
 import { celebrate, Joi } from 'celebrate'
 import { authorized } from '../middlewares/authorized'
@@ -79,5 +79,11 @@ export default function(router: Router) {
             })
         }),
         updateSeenMovie
+    )
+
+    route.get(
+        '/recommendations',
+        authorized(),
+        getRecommendations
     )
 }
