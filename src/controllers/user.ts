@@ -106,3 +106,22 @@ export async function updateSeenMovie(req: Request, res: Response, next: NextFun
         return next(e)
     }
 }
+
+export async function getRecommendations(req: Request, res: Response, next: NextFunction) {
+    const logger: winston.Logger = Container.get('AppLogger')
+    const userServiceInstance = Container.get(UserService)
+    const payload = res.locals['payload'] as UserPayload
+
+    try {
+        const userId = payload.id
+        const recommendations = await userServiceInstance.getRecommendations(userId.toString(), 10)
+        return res
+            .status(200)
+            .json({
+                recommendations
+            })
+    } catch (e) {
+        logger.error('🔥 error ', e)
+        return next(e)
+    }
+}
