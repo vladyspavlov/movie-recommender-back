@@ -155,15 +155,15 @@ export class UserService {
 
         try {
             // Get rated movies
-            const seenMovies: Pick<Seen, 'media'>[] = await this.SeenModel
+            const seenMovies: Pick<Seen, 'media' | 'score'>[] = await this.SeenModel
                 .aggregate([
                     { $match: {
-                        user: Types.ObjectId(userId),
-                        score: { $gte: 4 }
+                        user: Types.ObjectId(userId)
                     } },
                     { $project: {
                         _id: 0,
-                        media: 1
+                        media: 1,
+                        score: 1
                     } }
                 ])
                 .exec()
@@ -174,12 +174,14 @@ export class UserService {
 
             // Get rated movies id
             const seenMoviesIds = seenMovies.map(m => m.media)
+            // Get rated movies id except movies with score < 4
+            const seenMoviesIdsFiltered = seenMovies.filter(m => m.score >= 4).map(m => m.media)
             // Get movie keywords by movie id
             const moviesKeywords: Pick<Movie, 'keywords'>[] = await this.MovieModel
                 .aggregate([
                     { $match: {
                         _id: {
-                            $in: seenMoviesIds
+                            $in: seenMoviesIdsFiltered
                         }
                     } },
                     { $project: {
@@ -193,22 +195,14 @@ export class UserService {
             const keywordsArr = flatten(moviesKeywords.map(m => m.keywords))
             // count keyword frequency
             const keywordsFrequency = countBy(keywordsArr)
-            // convert object to array of arrays i.e. [ [ keyword, count ], ... ]
-            const keywordsFrequencyEntries = Object.entries(keywordsFrequency)
-            // Calculate density for each keyword
-            const keywordsDensityArr = keywordsFrequencyEntries.map(e => {
-                const density = e[1] / keywordsArr.length
-                return { [e[0]]: density }
-            })
-            // Convert array of arrays back to object
-            const keywordsDensity = Object.assign({}, ...keywordsDensityArr)
             // Find all movies (except seen) that contains at least one of keywords
             const matchedMovies: DocumentType<Movie>[] = await this.MovieModel
                 .aggregate([
                     { $match: {
                         $and: [
                             { keywords: { $in: keywordsArr } },
-                            { _id: { $nin: seenMoviesIds } }
+                            { _id: { $nin: seenMoviesIds } },
+                            { status: 'Released' }
                         ]
                     }},
                     { $project: {
@@ -226,7 +220,7 @@ export class UserService {
                 // find density for each movie
                 .map(m => {
                     const movieDensity = m.keywords
-                        .map(k => keywordsDensity[(<string>k)]) // declare k as string
+                        .map(k => keywordsFrequency[(<string>k)]) // declare k as string
                         .filter(k => k) // filter undefined
                         .reduce((acc, cur) => (acc + cur)) // sum all densities of all keywords
                     
@@ -246,13 +240,13 @@ export class UserService {
                 })
                 // sort by density and popularity
                 .sort((a, b) => (b[1] - a[1]) || (b[2] - a[2]))
+                .slice(0, limit)
                 // Return array of ObjectId(movieId)
                 .map(m => ({
                     _id: Types.ObjectId(m[0]),
                     title: m[3],
                     posterPath: m[4]
                 }))
-                .slice(0, limit)
 
             return similarMovies
         } catch (e) {
