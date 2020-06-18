@@ -119,9 +119,14 @@ export class MovieService {
                 throw new Error('Invalid Id')
             }
 
-            const movie = await this.MovieModel
-                .findOne({ _id: id })
-                .select({ _id: 0, keywords: 1 })
+            const keywords: Pick<Movie, 'keywords'>[] = await this.MovieModel
+                .aggregate([
+                    { $match: { _id: Types.ObjectId(id) } },
+                    { $project: {
+                        _id: 0,
+                        keywords: 1
+                    } }
+                ])
                 .exec()
             
             const related = await this.MovieModel
@@ -129,7 +134,7 @@ export class MovieService {
                     { $match: 
                         {
                             $and: [
-                                { keywords: { $in: movie.keywords } },
+                                { keywords: { $in: keywords[0].keywords } },
                                 { _id: { $ne: Types.ObjectId(id) } }
                             ]
                         }
