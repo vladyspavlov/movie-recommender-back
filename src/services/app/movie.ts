@@ -160,20 +160,28 @@ export class MovieService {
 
         try {
             return await this.MovieModel
-                .find({
-                    $and: [
-                        {
-                            $or: [
-                                { title: regex },
-                                { 'translations.data.title': regex }
-                            ]
-                        },
-                        { adult: false }
-                    ]
-                })
-                .sort({ popularity: -1 })
-                .limit(100)
-                .select({ __v: 0, createdAt: 0, updatedAt: 0 })
+                .aggregate([
+                    { $match: {
+                        $and: [
+                            {
+                                $or: [
+                                    { title: regex },
+                                    { 'translations.data.title': regex }
+                                ]
+                            },
+                            { adult: false }
+                        ]
+                    } },
+                    { $sort: {
+                        popularity: -1
+                    } },
+                    { $limit: 100 },
+                    { $project:{
+                        __v: 0,
+                        createdAt: 0,
+                        updateAt: 0
+                    } }
+                ])
                 .exec()
         } catch (e) {
             throw e
