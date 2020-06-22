@@ -6,7 +6,7 @@ import * as winston from 'winston'
 import { EventDispatcher, EventDispatcherInterface } from '../../decorators/eventDispatcher'
 import events from '../../subscribers/events'
 import { Types, isValidObjectId } from 'mongoose'
-import { omit, countBy, flatten } from 'lodash'
+import { omit, countBy, flatten, forEach as _forEach } from 'lodash'
 import { Movie } from '../../models/movie/Movie'
 
 @Service()
@@ -172,35 +172,93 @@ export class UserService {
                 return []
             }
 
+            const movieScore = Object.fromEntries(
+                seenMovies.map(seen => [ seen.media, seen.score ])
+            )
+
             // Get rated movies id
             const seenMoviesIds = seenMovies.map(m => m.media)
-            // Get rated movies id except movies with score < 4
-            const seenMoviesIdsFiltered = seenMovies.filter(m => m.score >= 4).map(m => m.media)
             // Get movie keywords by movie id
-            const moviesKeywords: Pick<Movie, 'keywords'>[] = await this.MovieModel
+            type moviesInfo = Pick<DocumentType<Movie>, '_id' | 'genres' | 'keywords'>
+            const moviesInfo: moviesInfo[] = await this.MovieModel
                 .aggregate([
                     { $match: {
                         _id: {
-                            $in: seenMoviesIdsFiltered
+                            $in: seenMoviesIds
                         }
                     } },
                     { $project: {
-                        _id: 0,
+                        _id: 1,
+                        genres: 1,
                         keywords: 1
                     } }
                 ])
                 .exec()
 
+            const moviesInfoScore = moviesInfo.map(m => {
+                m['score'] = movieScore[m._id]
+                return m
+            })
+
+            const scores = moviesInfoScore.map(m => {
+                const keywordsScore = m.keywords.map(k => [ k.toString(), m['score'] ])
+                const genresScore = m.genres.map(g => [ g.toString(), m['score'] ])
+                return [ keywordsScore, genresScore ]
+            })
+            
+
+            const keywordsScores: { [ key: string ]: number } = {}
+            const genresScores: { [ key: string ]: number } = {}
+
+            for (const movie of scores) {
+                for (const keyword of movie[0]) {
+                    if (keyword[0] in keywordsScores === false) {
+                        keywordsScores[keyword[0]] = 0    
+                    }
+
+                    keywordsScores[keyword[0]] += keyword[1]
+                }
+
+                for (const genre of movie[1]) {
+                    if (genre[0] in genresScores === false) {
+                        genresScores[genre[0]] = 0
+                    }
+                    
+                    genresScores[genre[0]] += genre[1]
+                }
+            }
+
             // combine keywords of all movies to one array
-            const keywordsArr = flatten(moviesKeywords.map(m => m.keywords))
+            const keywordsArr = flatten(moviesInfo.map(m => m.keywords))
+            const genresArr = flatten(moviesInfo.map(m => m.genres))
             // count keyword frequency
             const keywordsFrequency = countBy(keywordsArr)
-            // Find all movies (except seen) that contains at least one of keywords
-            const matchedMovies: DocumentType<Movie>[] = await this.MovieModel
+            const genresFrequency = countBy(genresArr)
+            
+            // add score by keyword to frequency
+            _forEach(keywordsFrequency, (freq, key) => {
+                keywordsFrequency[key] += keywordsScores[key]
+            })
+
+            _forEach(genresFrequency, (freq, key) => {
+                genresFrequency[key] += genresScores[key]
+            })
+            
+            // Find all movies (except seen) that contains at least one of keywords or genres
+            type matchedMovies = Pick<
+                DocumentType<Movie>,
+                '_id' | 'keywords' | 'genres' | 'title' | 'posterPath' | 'popularity'
+            >
+            const matchedMovies: matchedMovies[] = await this.MovieModel
                 .aggregate([
                     { $match: {
                         $and: [
-                            { keywords: { $in: keywordsArr } },
+                            {
+                                $and: [
+                                    { keywords: { $in: keywordsArr } },
+                                    { genres: { $in: genresArr } }
+                                ]
+                            },
                             { _id: { $nin: seenMoviesIds } },
                             { status: 'Released' }
                         ]
@@ -208,6 +266,7 @@ export class UserService {
                     { $project: {
                         _id: 1,
                         keywords: 1,
+                        genres: 1,
                         title: 1,
                         posterPath: 1,
                         popularity: 1
@@ -219,10 +278,16 @@ export class UserService {
             const similarMovies = matchedMovies
                 // find density for each movie
                 .map(m => {
-                    const movieDensity = m.keywords
+                    const keywordsDensity = m.keywords
                         .map(k => keywordsFrequency[(<string>k)]) // declare k as string
                         .filter(k => k) // filter undefined
-                        .reduce((acc, cur) => (acc + cur)) // sum all densities of all keywords
+                        .reduce((acc, cur) => (acc + cur), 0) // sum all densities of all keywords
+                    const genresDensity = m.genres
+                        .map(g => genresFrequency[(<string>g)])
+                        .filter(g => g)
+                        .reduce((acc, cur) => (acc + cur), 0)
+
+                    const movieDensity = keywordsDensity + genresDensity
                     
                     return [
                         m._id,
